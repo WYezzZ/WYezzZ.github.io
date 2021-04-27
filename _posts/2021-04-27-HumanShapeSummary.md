@@ -4,7 +4,7 @@ title:      test
 subtitle:   test
 date:       2021-04-27
 author:     WY
-header-img: img/humanshapesum/hmr.png
+header-img: img/404-bg.jpg
 catalog: 	 true
 tags:
     - Humam Pose and Shape
