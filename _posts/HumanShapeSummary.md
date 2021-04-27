@@ -1,3 +1,16 @@
+---
+layout:     post
+title:      人体姿态估计与三维重建综述
+subtitle:   from HMR to PiFuHD
+date:       2021-04-27
+author:     WY
+header-img: img/humanshapesum/hmr.png
+catalog: 	 true
+tags:
+    - Humam Pose and Shape
+    - 人体姿态与重建
+---
+
 # 人体姿态估计与三维重建综述
 
 ## 基于深度学习的人体三维重建
