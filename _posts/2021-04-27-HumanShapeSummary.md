@@ -26,7 +26,7 @@ HMR的backbone采用Resnet50从单张图片提取1024维特征，经过全连接
 ![hmr](/img/humanshapesum/hmr.png)
 #### SPIN
 SPIN的核心思路是采用了回归网络加优化的组合形式来达到参数网络和迭代方法的自提高。通过将网络估计的模型参数作为初值送给SMPLify(去除碰撞检测)做优化，优化依据包括关节点位置，pose,shape的prior等等。作者认为这种做法使得regression和optimaization能形成一个self-improving cycle(自提高循环?)。因此网络loss为regressoin和优化结果的L2Loss。训练过程会预先通过SMPLify得到初始结果，制作成一个表，当新优化的shape比表中误差低时则更新"最优解"，这一过程在整个训练中都持续进行。
-![spin](/img/humanshapesum/spin.png)
+![spin](/img/humanshapesum/SPIN.png)
 #### I2L-Meshnet
 I2L-MeshNet提出lixel(线素)的概念，想解决的问题是一般从图片回归模型参数的方法面临的高度非线性，从像素到Mesh的预测破坏了像素间的空间位置关系.  I2L转而预测Mesh每个顶点在像素1D热图上的逐像素可能性。网络包含PoseNet和MeshNet。PoseNet估计关节点位置并产生三维空间的gaussian heatmap与同尺寸的imgfeat作为MeshNet的输入。输出是N通道的heatmap，通过在x,y,x+y等维度取平均等操作回归N个顶点的相对坐标loss包括joint,Mesh顶点坐标，normal,edge长度的误差。
 ![I2L](/img/humanshapesum/I2L.png)
