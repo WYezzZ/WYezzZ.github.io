@@ -1,7 +1,7 @@
 ---
 layout:     post
-title:      test
-subtitle:   test
+title:      人体姿态估计与三维重建综述
+subtitle:   Human Pose and Shape
 date:       2021-04-27
 author:     WY
 header-img: img/404-bg.jpg
