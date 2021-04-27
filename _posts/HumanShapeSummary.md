@@ -1,7 +1,7 @@
 ---
 layout:     post
-title:      人体姿态估计与三维重建综述
-subtitle:   from HMR to PiFuHD
+title:      test
+subtitle:   test
 date:       2021-04-27
 author:     WY
 header-img: img/humanshapesum/hmr.png
