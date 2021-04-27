@@ -33,9 +33,10 @@ I2L-MeshNet提出lixel(线素)的概念，想解决的问题是一般从图片�
 #### VIBE
 VIBE的思路是采用视频序列的信息去估计一个时间段的人体姿态序列。以前的基于视频的方法面临的问题是缺少野外带
 3D标注的数据集，VIBE使用mocap数据集作为真实动作序列的来源，基于GAN的方式训练，生成器、鉴别器都使用GRU的结构，前者生成动作序列，后者判断生成结果是否真实。
+![vibe](/img/humanshapesum/VIBE.png)
 值得注意的是鉴别器采用了自注意力机制，给不同帧以不同的权重来判断动作是否符合真实分布，相比采用pooling,平均等方式聚合多帧信息的方式，作者认为注意力机制能够考虑到每帧的细节，而不是模糊的特征。
 论文提到相比temporal-HMR，它的结果平滑性稍低于temporal-HMR，但在精度上有提高。
-![vibe](/img/humanshapesum/vibe.png)
+![vibe-D](/img/humanshapesum/VIBE-D.png)
 ### SMPL+offset的带衣物形变重建
 #### Tex2Shape
 Tex2Shape的目的是从单张图片恢复出同SMPL拓扑却带有衣物褶皱细节的体型出来。输入从原图转化为UV texture map(这一步借助densepose完成uv预测和转化)，然后输入采用U-Net结构的网络得到normal和displacenment。
@@ -46,7 +47,7 @@ Lossf方面，对于normal和displacement更关注结构而非准确率，所以
 #### HMD
 HMD的思路是coarse-to-fine得预测模型顶点的偏移，从初级的joint到anchor最后到顶点，网络预测逐层的deform值，最终得到带形变的mesh。在vertex阶段，训练了一个shading-net从图片和当前的深度图预测一个refined的深度图，
 使用了少量的带有深度gt的数据作为训练。并且这里使用了IID分解，目的是使得最终IID分解的误差最小。
-![hmd](/img/humanshapesum/hmd.png)
+![hmd](/img/humanshapesum/HMD.png)
 
 ### model-free的人体三维重建
 #### DeepHuman
