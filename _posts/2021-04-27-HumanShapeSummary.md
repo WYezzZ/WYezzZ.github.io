@@ -54,7 +54,28 @@ HMD的思路是coarse-to-fine得预测模型顶点的偏移，从初级的joint�
 DeepHuman从单张图片和初始的SMPL估计预测出整个人的占用场和法向量图。具体做法是利用初始的SMPL估计得到一个semantic volume,和投影得到semantic map,
 对于几何重建，使用了一个vol2vol的网络输出一个占用场，encoder阶段嵌入se map和原图的特征信息。得到占用场后，投影计算normal map,经过refine网络得到更具细节信息法向图来优化mesh。
 vol2vol采用了一个Volumetric Feature Transformation的结构，作者认为这个结构的好处是相比于latent code再反卷积的形式，它保留了关于shape的原始信息，以及效率和试应不同分辨率的灵活性上有所提高。
+![hmd](/img/humanshapesum/DeepHuman.png)
 #### PiFuHD
+高精度人体三维重建是一个有挑战性的课题，以往基于深度学习的方法在精度和细节恢复上与传统多相机系统相比还是差了很多。PiFuHD的目的是从单张图片恢复带有衣物细节的人体，为了使得细节更为准确，采用的是更高分辨率（1k）的图片作为输入。
+![pifuhd](/img/humanshapesum/pifu.png)
+作者认为以前的方法受限于显存，一般只采用局部细节丢失的低分图，很难恢复准确的衣物褶皱。以前高精度重建的方法可以分为两个阵营，一个是采用coarse-to-fine的思路，首先预测一个低精度的表面，更细节和高频的信息以normal或者displacements的形式嵌入，嵌入方式包括后期处理(如shape from shading)和神经网络。
+另一个阵营是采用高精度的人体模型比如(SCAPE)。
+本文使用了一个end-to-end多层级的网路，将通过低分得到的关于几何全局上下文信息的隐编码送给深层网络，进行更细节的预测。同时由于单张图片背面的信息缺失，还采用了I2IT的网络预测背面的noraml,从而对背面进行预测以得到一个完整的人体。
+PiFuHD采用了前身PiFU作为base网络，PiFU没有显式将空间离散化为Volume（显存占用太大），而实学习一个function来决定任意一个体素（位置）的占用情况（occupancy）。
+piFu的function定义如下：
+![pifu](/img/humanshapesum/pifu-func.png)  
+对于空间任意一个体素，采用正交投影获取对应的image_feature,以及深度作为条件，预测该深度的占用概率。训练可以通过对空间进行采用采样比较网络预测和采样点实际占用情况。
+PiFuHD整个网络包括一个coarse的PIFu,和一个高分图作为输入的fine网络。
+coarse输入512x512的图片，输出128x128的特征图。而fine网络输入1024x1024，输出512x512的特征图。fine网络会利用coarse得到的3D embedding feature。
+训练Loss采用了extended BCE,并且只对采样的点计算loss。
+![pifuloss](/img/humanshapesum/pifu-loss.png)
+
+
+
+
+
+
+
 
 
 
