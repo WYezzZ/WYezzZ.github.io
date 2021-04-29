@@ -1,0 +1,77 @@
+---
+layout:     post
+title:      SMPL模型简介和蒙皮过程
+subtitle:   SMPL Modelization
+date:       2021-04-27
+author:     WY
+header-img: img/404-bg.jpg
+catalog: 	 true
+tags:
+    - SMPL LBS
+    - 人体姿态与重建
+---
+
+# SMPL
+___
+## SMPL 模型参数介绍
+
+SMPL模型分为female,male,neural三种性别。每种模型具有相同的参数结构，不同的是模型的参数数值。
+以male为例，模型参数主要部分包括:  
+- J_regressor [24,6890] **完成从vertex到joint的回归**
+- weight [6890,24]      **蒙皮权重**
+- posedirs [6890,3,207] **pose引起的表面非刚性形变**
+- v_template [6890,3]   **T-pose,zero-shape的顶点位置**
+- shapedirs [6890,3,10] **shape形变的主成分，包含10维**
+- faces [13776,3]       **三角形连接关系**
+- kintree_table [2,24]  **父子关节点**
+
+计算步骤：  
+1. 计算V_shaped:体型引起的非刚性形变
+``` 
+v_shaped = self.shapedirs.dot(self.beta) + self.v_template`  
+self.J = self.J_regressor.dot(v_shaped)
+```
+2. 计算V_posed：pose引起的非刚性形变
+```
+pose_cube = self.pose.reshape((-1, 1, 3)) 
+self.R = self.rodrigues(pose_cube) #旋转矩阵
+I_cube = np.broadcast_to(
+    np.expand_dims(np.eye(3), axis=0),
+    (self.R.shape[0]-1, 3, 3)
+)     #单位矩阵
+lrotmin = (self.R[1:] - I_cube).ravel()     #[207]
+v_posed = v_shaped + self.posedirs.dot(lrotmin)
+```
+3. 计算世界坐标系下每个关节点的transformation,维度为[24,4,4],
+在每一个4x4的矩阵里，后三行均为0)
+
+```
+G = np.empty((self.kintree_table.shape[1], 4, 4))
+
+G[0] = self.with_zeros(np.hstack((self.R[0], self.J[0, :].reshape([3, 1])))) 
+
+
+for i in range(1, self.kintree_table.shape[1]):
+    G[i] = G[self.parent[i]].dot(
+    self.with_zeros(
+        np.hstack(
+        [self.R[i],((self.J[i, :]-self.J[self.parent[i],:]).reshape([3,1]))]
+        )
+    )
+    )
+
+# [[R*,t*],
+#  [0,0]] 
+# R*为global rotation,t*为旋转后的joint location.
+G = G - self.pack(
+    np.matmul(G,np.hstack([self.J, np.zeros([24, 1])]).reshape([24, 4, 1])))
+# [[R*,t*-R*J]
+#   [0,1]]
+```
+4. 计算每个顶点旋转后的偏移(LBS线性混合蒙皮)
+```
+T = np.tensordot(self.weights, G, axes=[[1], [0]])
+rest_shape_h = np.hstack((v_posed, np.ones([v_posed.shape[0], 1])))
+v = np.matmul(T, rest_shape_h.reshape([-1, 4, 1])).reshape([-1, 4])[:, :3]
+```
+
